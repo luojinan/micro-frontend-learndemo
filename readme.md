@@ -18,3 +18,100 @@ TODO: microCore 实现现在市面上多种微前端方案, 通过不同的入�
 - micor-app 京东零售
 - 无界
 - iframe - 携程
+
+## 注册子应用配置信息
+
+[qiankun-在主应用中注册微应用](https://qiankun.umijs.org/zh/guide/getting-started#2-%E5%9C%A8%E4%B8%BB%E5%BA%94%E7%94%A8%E4%B8%AD%E6%B3%A8%E5%86%8C%E5%BE%AE%E5%BA%94%E7%94%A8)
+
+```js
+import { registerMicroApps, start } from 'qiankun';
+
+registerMicroApps([
+  {
+    name: 'react app', // app name registered
+    entry: '//localhost:7100',
+    container: '#yourContainer',
+    activeRule: '/yourActiveRule',
+  },
+  {
+    name: 'vue app',
+    entry: { scripts: ['//localhost:7100/main.js'] },
+    container: '#yourContainer2',
+    activeRule: '/yourActiveRule2',
+  },
+]);
+
+start();
+```
+
+我们实现自己的 `registerMicroApps`
+
+暂时可以看出是一个存储到 核心类库 中的一些配置项
+
+如 `vite.config.ts` 中的 `defineConfig({})`
+
+👇 `mainApp/src/main.ts`
+
+```ts
+import { registerMicroApps } from '../../microCore/index';
+import './style.css'
+
+document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+  <div>
+    <img src="/vite.svg" class="logo" alt="Vite logo" />
+    <h1>Vite + TypeScript</h1>
+  </div>
+`
+
+registerMicroApps([
+  {
+    name: 'vue3 app',
+    entry: '//localhost:7100',
+    container: '#yourContainer2',
+    activeRule: '/yourActiveRule2',
+  }
+]);
+```
+
+👇 `microCore/index.ts`
+```ts
+// 微前端核心类库 提供给 mainAPP 使用
+interface SubappInfo {
+  name: string,
+  entry: string,
+  container: string,
+  activeRule: string,
+}
+
+export function registerMicroApps(option :SubappInfo[]) {
+  console.log('存储子应用注册信息', option)
+}
+```
+
+![](https://kingan-md-img.oss-cn-guangzhou.aliyuncs.com/blog/20230118163805.png)
+
+配置 `mainApp/tsconfig.json` 添加 `"../microCore"`
+```json
+"include": ["src", "../microCore"]
+```
+
+microCore 新增 `const/index.ts` 用于存储运行时的注册子应用信息
+
+```ts
+import type { SubappInfo } from '../type'
+
+let subappList:SubappInfo[] = []
+export const getAppList = () => subappList
+export const setList = (appList:SubappInfo[]) => subappList = appList
+```
+
+👇 `microCore/index.ts`
+```ts
+// 微前端核心类库 提供给 mainAPP 使用
+import { setAppList } from './const'
+import type { SubappInfo } from './type'
+
+export function registerMicroApps(option :SubappInfo[]) {
+  setAppList(option)
+}
+```
