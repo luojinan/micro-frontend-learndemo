@@ -112,6 +112,73 @@ import { setAppList } from './const'
 import type { SubappInfo } from './type'
 
 export function registerMicroApps(option :SubappInfo[]) {
-  setAppList(option)
+  setAppList(option) // <-- this
 }
 ```
+
+## 拦截路由
+
+👇 `microCore/router/rewriteRouter.ts`
+```ts
+/**
+ * 重写 history API
+ */
+export const rewriteRouter = () => {
+
+  const originalPushState = window.history.pushState
+  const originalReplaceState = window.history.replaceState
+
+  window.history.pushState = function () {
+    originalPushState.apply(this, arguments)
+    console.log('history.pushState')
+  }
+
+  window.history.replaceState = function() {
+    originalReplaceState.apply(this, arguments)
+    console.log('history.replaceState')
+  }
+
+  window.onpopstate = function() {
+    console.log('onpopstate')
+  }
+}
+```
+
+👇 `microCore/index.ts`
+```ts
+export function registerMicroApps(option :SubappInfo[]) {
+  setAppList(option)
+  rewriteRouter() // <-- this
+}
+```
+
+控制台输入 `history.pushState(null, '', '/foo')` 触发了我们的拦截 `console`
+![](https://kingan-md-img.oss-cn-guangzhou.aliyuncs.com/blog/20230118170503.png)
+
+浏览器前进返回触发 打印 `'onpopstate'`
+
+🤔 视频里利用 自定义事件监听器来触发 回调
+
+```ts
+export const rewriteRouter = () => {
+  rewriteOriginFn(window.history.pushState, 'customerEventListenerPush') // 传入 未执行的原生方法 和 自定义事件名字符串
+  rewriteOriginFn(window.history.replaceState, 'customerEventListenerReplace')
+
+  window.addEventListener('customerEventListenerPush', openApp) // 创建 自定义事件
+  window.addEventListener('customerEventListenerReplace', openApp)
+}
+```
+
+```ts
+function rewriteOriginFn(originFn, eventListenerName) {
+  return function() {
+    originFn.apply(this, argument) // 执行原生方法
+    const e = new Event(eventListenerName) // 利用 new Event 把事件监听器名字符串 实例化为 事件
+    window.dispatchEvent(e) // 通过 dispatchEvent 执行事件实例
+  }
+}
+```
+
+👆 rewriteOriginFn 封装重写原生方法的重复部分可以理解
+
+🤔 但是第2个参数完全可以是一个回调函数, 为什么要用自定义事件监听器的方式调用回调？TODO: 
