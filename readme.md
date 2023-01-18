@@ -68,7 +68,7 @@ registerMicroApps([
     name: 'vue3 app',
     entry: '//localhost:7100',
     container: '#yourContainer2',
-    activeRule: '/yourActiveRule2',
+    activeRule: '/vue3demo',
   }
 ]);
 ```
@@ -179,6 +179,63 @@ function rewriteOriginFn(originFn, eventListenerName) {
 }
 ```
 
-👆 rewriteOriginFn 封装重写原生方法的重复部分可以理解
+👆 `rewriteOriginFn` 封装重写原生方法的重复部分可以理解
 
 🤔 但是第2个参数完全可以是一个回调函数, 为什么要用自定义事件监听器的方式调用回调？TODO: 
+
+## 当前URL匹配子应用注册信息
+
+通过 `location` 中的 `pathName` 来匹配注册信息中的子应用数据对象
+
+在 `VueRouter` 原理中 我们利用 `Vue.util.reactive` 把当前Url数据转为响应式数据
+
+通过 `watch` 来触发 回调 `render`
+
+现在没有响应式数据, 则需要自己手动在所有 `URL` 改变的地方手动触发 `render`
+- 页面 `init` 时, 如浏览器输入地址 `xxx/vue3demo/xx` 或 `刷新`
+- 主/子应用, 通过 `pushState` 等方法跳转页面(各现代前端 `Router` 的原理底层 )
+
+在 `qiankun` 这些步骤发生在 `start()`
+
+👇 `microCore/utils/index.ts`
+```ts
+import { getAppList } from "../const"
+import { SubappInfo } from "../type"
+
+/**
+ * 获取 URL 上的 pathname 作为 子应用name
+ * @returns 
+ */
+export const getSubappNameByUrl = () => {
+  return window.location.pathname
+}
+
+/**
+ * 根据当前 URL 和 子应用注册列表 匹配出当前子应用信息
+ */
+export const getCurrentSubappInfo:()=>SubappInfo|null = () => {
+
+  const appList = getAppList()
+  const urlAppName = getSubappNameByUrl()
+
+  const res = appList.find(item => item.activeRule === urlAppName)
+  return res ?? null
+}
+```
+
+👇 `microCore/index.ts`
+```ts
+export function start() {
+  // 判断子应用注册是否为空
+  const appList = getAppList()
+  if(!appList.length) {
+    throw '子应用列表为空, 请使用 registerMicroApps() 注册至少1个子应用'
+  }
+
+  // 获取当前 URL 匹配到的子应用信息
+  const currentAppInfo = getCurrentSubappInfo()
+  if(!currentAppInfo) return
+
+  console.log('currentAppInfo',currentAppInfo)
+}
+```

@@ -1,4 +1,4 @@
-import { registerMicroApps } from '../../microCore/index';
+import { registerMicroApps, start } from '../../microCore/index';
 import './style.css'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -13,6 +13,8 @@ registerMicroApps([
     name: 'vue3 app',
     entry: '//localhost:7100',
     container: '#yourContainer2',
-    activeRule: '/yourActiveRule2',
+    activeRule: '/vue3demo',
   }
 ]);
+
+start()
