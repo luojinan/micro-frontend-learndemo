@@ -316,6 +316,44 @@ declare global {
 }
 ```
 
+此时还没有编写初次加载页面/刷新时加载的逻辑
+
+一般来说和监听路由里的逻辑重复写
+
+但是尝试一下 加载页面/刷新 时触发 pushState 从而触发路由监听试试 会不会因此多出一层路由
+
+/vue2demo push /vue2demo
+
+浏览器返回时 是否会导致2层
+
+直接在控制台测试下来 pushstate 与当前 location.href 不会多出一层相同的历史
+
+但是在实际编写的时候，在有路由历史的情况下 刷新并触发pushstate当前url 会丢失历史，相当于刷新后的路由变成了首个路由
+
+TODO: 不 pushstate 的刷新可以正常返回， 不刷新的 pushstate 也可以返回, 但是刷新 + pushstate 就这样了？？？
+
+这里暂时先 重复写监听路由里相同的逻辑
+
+👇 `microCore/index.ts`
+```ts
+export function start() {
+  // 判断子应用注册是否为空
+  const appList = getAppList()
+  if(!appList.length) {
+    throw '子应用列表为空, 请使用 registerMicroApps() 注册至少1个子应用'
+  }
+
+  // 获取当前 URL 匹配到的子应用信息
+  // const currentAppInfo = getCurrentSubappInfo()
+  // if(!currentAppInfo) return
+
+  // console.log('init currentAppInfo',location.pathname + location.hash)
+  // history.pushState(null, '', location.href)
+  // window.__CURRENT_SUB_APP__ = currentAppInfo.activeRule // 定义 当前已加载的子应用 判断同一个子应用不触发load
+  loadApp()
+}
+```
+
 ## 主应用中定义通用生命周期
 
 在主应用编写 生命周期
