@@ -68,7 +68,7 @@ registerMicroApps([
     name: 'vue3 app',
     entry: '//localhost:7100',
     container: '#yourContainer2',
-    activeRule: '/vue3demo',
+    activeRule: '/vue2demo',
   }
 ]);
 ```
@@ -192,7 +192,7 @@ function rewriteOriginFn(originFn, eventListenerName) {
 通过 `watch` 来触发 回调 `render`
 
 现在没有响应式数据, 则需要自己手动在所有 `URL` 改变的地方手动触发 `render`
-- 页面 `init` 时, 如浏览器输入地址 `xxx/vue3demo/xx` 或 `刷新`
+- 页面 `init` 时, 如浏览器输入地址 `xxx/vue2demo/xx` 或 `刷新`
 - 主/子应用, 通过 `pushState` 等方法跳转页面(各现代前端 `Router` 的原理底层 )
 
 在 `qiankun` 这些步骤发生在 `start()`
@@ -240,7 +240,7 @@ export function start() {
 }
 ```
 
-编写主应用 Tab 功能
+## 编写主应用 Tab 功能
 
 ```ts
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -248,8 +248,8 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <img src="/vite.svg" class="logo" alt="Vite logo" />
     <h1>Vite + TypeScript</h1>
     <ul>
-      <li>/vue2#page1</li>
-      <li>/vue2#page2</li>
+      <li>/vue2demo#page1</li>
+      <li>/vue2demo#page2</li>
     </ul>
   </div>
 `
@@ -260,7 +260,34 @@ document.querySelectorAll('li')?.forEach(ele=>{
 })
 ```
 
+## 加载子应用
+
+前面只是拦截了路由没有写加载逻辑
+
+👇 `microCore/load/loadSubApp.ts`
+```ts
+import { getCurrentSubappInfo } from "../utils"
+
+export const loadApp = ()=>{
+  // 获取当前 URL 匹配到的子应用信息
+  const currentAppInfo = getCurrentSubappInfo()
+  if(!currentAppInfo) return
+
+  console.log('加载', currentAppInfo.activeRule)
+}
+```
+👆 可以看出和 start 里逻辑重复, start处理初始化和刷新逻辑
+
+在路由监听逻辑里都调用这个函数
+
+❕ 期望的效果是 子应用切换时才加载 同一个子应用不应该再次加载
+
+所以应该判断 当前已加载的子应用 与 切换的子应用是否同一个，同一个时不触发 load
+
+## 主应用中定义通用生命周期
+
 在主应用编写 生命周期
 
 microCore 的执行过程中调用传入进来的生命周期
 
+也就是会作用于加载所有子应用的过程

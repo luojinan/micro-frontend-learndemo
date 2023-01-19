@@ -20,7 +20,6 @@ export function start() {
   const currentAppInfo = getCurrentSubappInfo()
   if(!currentAppInfo) return
 
-  console.log('currentAppInfo',currentAppInfo)
-
+  console.log('init currentAppInfo',currentAppInfo)
 
 }

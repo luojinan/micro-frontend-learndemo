@@ -6,8 +6,8 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <img src="/vite.svg" class="logo" alt="Vite logo" />
     <h1>Vite + TypeScript</h1>
     <ul>
-      <li>/vue2#page1</li>
-      <li>/vue2#page2</li>
+      <li>/vue2demo#page1</li>
+      <li>/vue2demo#page2</li>
     </ul>
   </div>
 `
@@ -22,7 +22,7 @@ registerMicroApps([
     name: 'vue3 app',
     entry: '//localhost:7100',
     container: '#yourContainer2',
-    activeRule: '/vue3demo',
+    activeRule: '/vue2demo',
   }
 ]);
 
