@@ -5,8 +5,17 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
     <img src="/vite.svg" class="logo" alt="Vite logo" />
     <h1>Vite + TypeScript</h1>
+    <ul>
+      <li>/vue2#page1</li>
+      <li>/vue2#page2</li>
+    </ul>
   </div>
 `
+document.querySelectorAll('li')?.forEach(ele=>{
+  ele.addEventListener('click',()=>{
+    window.history.pushState(null,'', ele.innerText)
+  })
+})
 
 registerMicroApps([
   {
