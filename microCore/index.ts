@@ -21,5 +21,5 @@ export function start() {
   if(!currentAppInfo) return
 
   console.log('init currentAppInfo',currentAppInfo)
-
+  window.__CURRENT_SUB_APP__ = currentAppInfo.activeRule // 定义 当前已加载的子应用 判断同一个子应用不触发load
 }

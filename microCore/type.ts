@@ -5,3 +5,10 @@ export interface SubappInfo {
   container: string,
   activeRule: string,
 }
+
+
+declare global {
+  interface Window {
+    __CURRENT_SUB_APP__: string;
+  }
+}

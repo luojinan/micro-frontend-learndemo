@@ -8,6 +8,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <ul>
       <li>/vue2demo#page1</li>
       <li>/vue2demo#page2</li>
+      <li>/vue3demo#page1</li>
     </ul>
   </div>
 `
@@ -19,10 +20,16 @@ document.querySelectorAll('li')?.forEach(ele=>{
 
 registerMicroApps([
   {
-    name: 'vue3 app',
+    name: 'vue2.7 app',
     entry: '//localhost:7100',
     container: '#yourContainer2',
     activeRule: '/vue2demo',
+  },
+  {
+    name: 'vue3 app',
+    entry: '//localhost:7100',
+    container: '#yourContainer2',
+    activeRule: '/vue3demo',
   }
 ]);
 

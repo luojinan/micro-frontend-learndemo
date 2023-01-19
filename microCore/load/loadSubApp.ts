@@ -9,5 +9,9 @@ export const loadApp = ()=>{
   const currentAppInfo = getCurrentSubappInfo()
   if(!currentAppInfo) return
 
+  if(window.__CURRENT_SUB_APP__ === currentAppInfo.activeRule) return
+
   console.log('加载', currentAppInfo.activeRule)
+
+  window.__CURRENT_SUB_APP__ = currentAppInfo.activeRule // 定义 当前已加载的子应用 判断同一个子应用不触发load
 }

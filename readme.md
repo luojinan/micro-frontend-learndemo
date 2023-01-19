@@ -284,6 +284,38 @@ export const loadApp = ()=>{
 
 所以应该判断 当前已加载的子应用 与 切换的子应用是否同一个，同一个时不触发 load
 
+暂时用全局变量存 当前已加载的子应用
+
+👇 `microCore/load/loadSubApp.ts`
+```ts
+/**
+ * 加载 子应用
+ * @returns 
+ */
+export const loadApp = ()=>{
+  // 获取当前 URL 匹配到的子应用信息
+  const currentAppInfo = getCurrentSubappInfo()
+  if(!currentAppInfo) return
+
+  if(window.__CURRENT_SUB_APP__ === currentAppInfo.activeRule) return
+
+  console.log('加载', currentAppInfo.activeRule)
+
+  window.__CURRENT_SUB_APP__ = currentAppInfo.activeRule // 定义 当前已加载的子应用 判断同一个子应用不触发load
+}
+```
+
+ts定义 Window 全局变量 只要在 tsconfig.json 识别范围内，定义在哪都可以
+
+👇 `microCore/type.ts`
+```ts
+declare global {
+  interface Window {
+    __CURRENT_SUB_APP__: string;
+  }
+}
+```
+
 ## 主应用中定义通用生命周期
 
 在主应用编写 生命周期
