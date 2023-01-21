@@ -438,3 +438,11 @@ export const loadApp = async ()=>{
 
 生命周期效果如 👇
 ![](https://kingan-md-img.oss-cn-guangzhou.aliyuncs.com/blog/microlife.gif)
+
+### 生命周期loading实践
+
+![](https://kingan-md-img.oss-cn-guangzhou.aliyuncs.com/blog/20230121152432.png)
+
+表示左边的表达式不能判断是否有值再赋值, 即使有 `?.` 也不能确定 innerHTML 是否存在
+
+换成 `!.` 就能排除掉前面是null和undefined的情况 `document.querySelector('#yourContainer')!.innerHTML = '子应用加载中'`

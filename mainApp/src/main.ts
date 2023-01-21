@@ -10,6 +10,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <li>/vue2demo#page2</li>
       <li>/vue3demo#page1</li>
     </ul>
+    <div id="yourContainer"></div>
   </div>
 `
 document.querySelectorAll('li')?.forEach(ele=>{
@@ -22,24 +23,26 @@ registerMicroApps([
   {
     name: 'vue2.7 app',
     entry: '//localhost:7100',
-    container: '#yourContainer2',
+    container: '#yourContainer',
     activeRule: '/vue2demo',
   },
   {
     name: 'vue3 app',
     entry: '//localhost:7100',
-    container: '#yourContainer2',
+    container: '#yourContainer',
     activeRule: '/vue3demo',
   }
 ],{
   beforeLoad:[
     ()=>{
       console.log('开始加载')
+      document.querySelector('#yourContainer')!.innerHTML = '子应用加载中'
     }
   ],
   mounted:[
     ()=>{
       console.log('渲染完成')
+      document.querySelector('#yourContainer')!.innerHTML = '子应用加载完成'
     }
   ],
   destoryed:[
