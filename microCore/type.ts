@@ -6,6 +6,12 @@ export interface SubappInfo {
   activeRule: string,
 }
 
+export interface LifeCycles {
+  beforeLoad?: Function[],
+  mounted?: Function[],
+  destoryed?: Function[],
+}
+
 
 declare global {
   interface Window {

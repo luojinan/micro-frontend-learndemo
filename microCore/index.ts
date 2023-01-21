@@ -1,13 +1,14 @@
 // 微前端核心类库 提供给 mainAPP 使用
 import { getAppList, setAppList } from './const'
+import { setMainlLifeCycles } from './const/mainLifeCycle'
 import { loadApp } from './load/loadSubApp'
 import { rewriteRouter } from './router/rewriteRouter'
-import type { SubappInfo } from './type'
-import { getCurrentSubappInfo } from './utils'
+import type { LifeCycles, SubappInfo } from './type'
 
-export function registerMicroApps(option :SubappInfo[]) {
+export function registerMicroApps(option :SubappInfo[], lifeCycles: LifeCycles) {
   setAppList(option)
   rewriteRouter()
+  setMainlLifeCycles(lifeCycles)
 }
 
 export function start() {

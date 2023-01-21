@@ -31,6 +31,22 @@ registerMicroApps([
     container: '#yourContainer2',
     activeRule: '/vue3demo',
   }
-]);
+],{
+  beforeLoad:[
+    ()=>{
+      console.log('开始加载')
+    }
+  ],
+  mounted:[
+    ()=>{
+      console.log('渲染完成')
+    }
+  ],
+  destoryed:[
+    ()=>{
+      console.log('销毁完成')
+    }
+  ]
+});
 
 start()

@@ -360,4 +360,81 @@ export function start() {
 
 microCore 的执行过程中调用传入进来的生命周期
 
-也就是会作用于加载所有子应用的过程
+也就是会作用于加载所有子应用的过程x
+
+👇 主应用入口文件注册子应用信息
+```ts
+registerMicroApps(subAppList,
+  {
+    beforeLoad:[
+      ()=>{
+        console.log('开始加载')
+      }
+    ],
+    mounted:[
+      ()=>{
+        console.log('渲染完成')
+      }
+    ],
+    destoryed:[
+      ()=>{
+        console.log('销毁完成')
+      }
+    ]
+  }
+)
+```
+生命周期的钩子逻辑是简单的发布订阅机制，把未执行的函数列表先存储起来，在执行到的某个时机去相应的调用这些函数
+
+我们和存储子应用信息方式相同 创建 `microCore/const/mainLifeCycle.ts`
+
+```ts
+import type { LifeCycles } from '../type'
+
+let mainLifeCycles:LifeCycles = {}
+export const getMainlLifeCycles = () => mainLifeCycles
+export const setMainlLifeCycles = (mainlLifeCycles:LifeCycles) => mainLifeCycles = mainlLifeCycles
+```
+
+👇 `microCore/type.ts`
+```ts
+export interface LifeCycles {
+  beforeLoad?: Function[],
+  mounted?: Function[],
+  destoryed?: Function[],
+}
+```
+
+编写调用逻辑
+
+因为上面 首次加载/刷新 和 监听路由变化触发 的 loadSubApp 抽离到了一起
+
+因此 `microCore/load/loadSubApp.ts`
+
+```ts
+export const loadApp = async ()=>{
+  // 获取当前 URL 匹配到的子应用信息
+  const currentAppInfo = getCurrentSubappInfo()
+  if(!currentAppInfo) return
+
+  if(window.__CURRENT_SUB_APP__ === currentAppInfo.activeRule) return
+
+  console.log('加载', currentAppInfo.activeRule)
+
+  // 1. 调 开始前 生命周期 // <-- this
+  const {beforeLoad, mounted, destoryed} = getMainlLifeCycles()
+  beforeLoad?.forEach(fn=>fn())
+
+  // 2. 加载子应用(耗时) // <-- this
+  await sleep()
+  mounted?.forEach(fn=>fn())
+
+  // 3. 调 完成 生命周期 // <-- this
+  destoryed?.forEach(fn=>fn())
+
+  window.__CURRENT_SUB_APP__ = currentAppInfo.activeRule // 定义 当前已加载的子应用 判断同一个子应用不触发load
+}
+```
+
+生命周期效果如 👇
+![](https://kingan-md-img.oss-cn-guangzhou.aliyuncs.com/blog/microlife.gif)
