@@ -446,3 +446,92 @@ export const loadApp = async ()=>{
 表示左边的表达式不能判断是否有值再赋值, 即使有 `?.` 也不能确定 innerHTML 是否存在
 
 换成 `!.` 就能排除掉前面是null和undefined的情况 `document.querySelector('#yourContainer')!.innerHTML = '子应用加载中'`
+
+
+## 子应用生命周期
+
+子应用生命周期为注册信息对象中的属性
+
+```ts
+registerMicroApps([
+  {
+    name: 'vue2.7 app',
+    entry: '//localhost:7100',
+    container: '#yourContainer',
+    activeRule: '/vue2demo',
+    beforeLoad: () => console.log('vue2demo 生命周期 beforeLoad'), // <-- 子应用生命周期
+    mounted: () => console.log('vue2demo 生命周期 mounted'),
+    destoryed: () => console.log('vue2demo 生命周期 destoryed')
+  }
+], {
+  beforeLoad: [], // <-- 主应用生命周期
+  mounted: [],
+  destoryed: [],
+})
+```
+👆 主/子应用 生命周期触发时机相同 相当于主应用设置通用逻辑 子应用设置自定义逻辑
+
+要获取前子应用和后子应用, 才能分别触发他们的生命周期
+
+在匹配到目标路径是注册信息中的另一个子应用时
+👇 修改当前子应用全局变量标识 的同时记录原子应用路径
+```ts
+window.__ORIGIN_SUB_APP__ = window.__CURRENT_SUB_APP__ // 修改 __CURRENT_SUB_APP__ 的值前 记录原值作为 preSubApp
+window.__CURRENT_SUB_APP__ = currentAppInfo.activeRule // 定义 当前已加载的子应用 判断同一个子应用不触发load
+```
+
+👇 调用目录子应用的生命周期不需要判断
+```ts
+export const loadApp = async ()=>{
+  // 获取当前 URL 匹配到的子应用信息
+  const currentAppInfo = getCurrentSubappInfo()
+  if(!currentAppInfo) return
+
+  if(window.__CURRENT_SUB_APP__ === currentAppInfo.activeRule) return
+
+  // 1. 调 开始前 生命周期
+  const {beforeLoad, mounted, destoryed} = getMainlLifeCycles()
+  beforeLoad?.forEach(fn=>fn())
+  currentAppInfo?.beforeLoad?.() // <-- this
+
+  // 2. 加载子应用(耗时) 调 完成 生命周期
+  await sleep()
+  mounted?.forEach(fn=>fn())
+  currentAppInfo?.mounted?.() // <-- this
+
+  window.__ORIGIN_SUB_APP__ = window.__CURRENT_SUB_APP__ // 修改 __CURRENT_SUB_APP__ 的值前 记录原值作为 preSubApp
+  window.__CURRENT_SUB_APP__ = currentAppInfo.activeRule // 定义 当前已加载的子应用 判断同一个子应用不触发load
+}
+```
+
+👇 调用销毁 则需要获取上一个子应用存在时, 并且时机是修改全局变量变量之后
+
+```ts
+export const loadApp = async ()=>{
+
+  // ... 略
+  window.__ORIGIN_SUB_APP__ = window.__CURRENT_SUB_APP__ // 修改 __CURRENT_SUB_APP__ 的值前 记录原值作为 preSubApp
+  window.__CURRENT_SUB_APP__ = currentAppInfo.activeRule // 定义 当前已加载的子应用 判断同一个子应用不触发load
+
+  // 3. 销毁上一个子应用调 销毁 生命周期 // <-- this
+  const preSubApp = findSubAppInfo(window.__ORIGIN_SUB_APP__)
+  if(preSubApp) {
+    destoryed?.forEach(fn=>fn())
+    preSubApp?.destoryed?.()
+  }
+}
+```
+
+
+## fetch 子应用资源
+
+### 解析HTML内容
+
+### 解析JS内容
+
+
+## 沙箱机制
+
+## store存储
+
+

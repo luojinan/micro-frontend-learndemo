@@ -1,5 +1,5 @@
 import { getMainlLifeCycles } from "../const/mainLifeCycle"
-import { getCurrentSubappInfo } from "../utils"
+import { findSubAppInfo, getCurrentSubappInfo } from "../utils"
 
 /**
  * 加载 子应用
@@ -17,19 +17,26 @@ export const loadApp = async ()=>{
   // 1. 调 开始前 生命周期
   const {beforeLoad, mounted, destoryed} = getMainlLifeCycles()
   beforeLoad?.forEach(fn=>fn())
+  currentAppInfo?.beforeLoad?.()
 
-  // 2. 加载子应用(耗时)
+  // 2. 加载子应用(耗时) 调 完成 生命周期
   await sleep()
   mounted?.forEach(fn=>fn())
+  currentAppInfo?.mounted?.()
 
-  // 3. 调 完成 生命周期
-  destoryed?.forEach(fn=>fn())
-
+  window.__ORIGIN_SUB_APP__ = window.__CURRENT_SUB_APP__ // 修改 __CURRENT_SUB_APP__ 的值前 记录原值作为 preSubApp
   window.__CURRENT_SUB_APP__ = currentAppInfo.activeRule // 定义 当前已加载的子应用 判断同一个子应用不触发load
+
+  // 3. 销毁上一个子应用调 销毁 生命周期
+  const preSubApp = findSubAppInfo(window.__ORIGIN_SUB_APP__)
+  if(preSubApp) {
+    destoryed?.forEach(fn=>fn())
+    preSubApp?.destoryed?.()
+  }
 }
 
 function sleep() {
   return new Promise( resolve => {
-    setTimeout(()=>resolve('4000ms done'), 4000)
+    setTimeout(()=>resolve('4000ms done'), 2000)
   })
 }

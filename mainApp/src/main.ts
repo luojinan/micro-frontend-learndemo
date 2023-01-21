@@ -25,29 +25,35 @@ registerMicroApps([
     entry: '//localhost:7100',
     container: '#yourContainer',
     activeRule: '/vue2demo',
+    beforeLoad: () => console.log('vue2demo 生命周期 beforeLoad'),
+    mounted: () => console.log('vue2demo 生命周期 mounted'),
+    destoryed: () => console.log('vue2demo 生命周期 destoryed')
   },
   {
     name: 'vue3 app',
     entry: '//localhost:7100',
     container: '#yourContainer',
     activeRule: '/vue3demo',
+    beforeLoad: () => console.log('vue3demo 生命周期 beforeLoad'),
+    mounted: () => console.log('vue3demo 生命周期 mounted'),
+    destoryed: () => console.log('vue3demo 生命周期 destoryed')
   }
 ],{
   beforeLoad:[
     ()=>{
-      console.log('开始加载')
+      console.log('主应用生命周期 开始加载')
       document.querySelector('#yourContainer')!.innerHTML = '子应用加载中'
     }
   ],
   mounted:[
     ()=>{
-      console.log('渲染完成')
+      console.log('主应用生命周期 渲染完成')
       document.querySelector('#yourContainer')!.innerHTML = '子应用加载完成'
     }
   ],
   destoryed:[
     ()=>{
-      console.log('销毁完成')
+      console.log('主应用生命周期 销毁完成')
     }
   ]
 });

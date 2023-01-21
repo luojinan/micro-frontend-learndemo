@@ -4,6 +4,9 @@ export interface SubappInfo {
   entry: string,
   container: string,
   activeRule: string,
+  beforeLoad?: Function,
+  mounted?: Function,
+  destoryed?: Function
 }
 
 export interface LifeCycles {
@@ -16,5 +19,6 @@ export interface LifeCycles {
 declare global {
   interface Window {
     __CURRENT_SUB_APP__: string;
+    __ORIGIN_SUB_APP__: string
   }
 }
