@@ -1,6 +1,7 @@
 import { getMainlLifeCycles } from "../const/mainLifeCycle"
+import { SubappInfo } from "../type"
 import { findSubAppInfo, getCurrentSubappInfo } from "../utils"
-import { fetchResource } from "./loadResource"
+import { fetchResource, pasrseHtml } from "./loadResource"
 
 /**
  * 加载 子应用
@@ -22,7 +23,9 @@ export const loadApp = async ()=>{
 
   // 2. 加载子应用(耗时) 调 完成 生命周期
   const htmlContent = await fetchResource(currentAppInfo.entry)
-
+  const htmlRes = pasrseHtml(htmlContent)
+  mountSubApp(htmlRes, currentAppInfo)
+  
   mounted?.forEach(fn=>fn())
   currentAppInfo?.mounted?.()
 
@@ -37,8 +40,7 @@ export const loadApp = async ()=>{
   }
 }
 
-function sleep() {
-  return new Promise( resolve => {
-    setTimeout(()=>resolve('4000ms done'), 2000)
-  })
+const mountSubApp = (htmlContent:string, appInfo:SubappInfo) => {
+  const subAppRootDom = document.querySelector(appInfo.container)
+  subAppRootDom!.innerHTML = htmlContent
 }

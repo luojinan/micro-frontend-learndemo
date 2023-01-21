@@ -565,7 +565,19 @@ devServer: {
 }
 ```
 
+👇 把读取到的 html 文本内容通过 `innerHTML` 挂载到子应用配置信息的 `container` 节点上
+```ts
+const mountSubApp = (htmlContent:string, appInfo:SubappInfo) => {
+  const subAppRootDom = document.querySelector(appInfo.container)
+  subAppRootDom!.innerHTML = htmlContent
+}
+```
+
+至此, `html` 虽然挂载上去了, 但是子应用内容是空的, 因为子应用是 `SPA` 应用, 需要加载到子应用 `JS` 才能渲染出内容
+
 ### 解析HTML内容
+
+
 
 ### 解析JS内容
 

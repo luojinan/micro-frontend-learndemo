@@ -48,7 +48,7 @@ registerMicroApps([
   mounted:[
     ()=>{
       console.log('主应用生命周期 渲染完成')
-      document.querySelector('#yourContainer')!.innerHTML = '子应用加载完成'
+      // document.querySelector('#yourContainer')!.innerHTML = '子应用加载完成'
     }
   ],
   destoryed:[
