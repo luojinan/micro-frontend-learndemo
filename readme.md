@@ -1,7 +1,7 @@
 ## 微前端demo
 以 vite + 原生html/js 为宿主应用搭建微前端框架
 
-以 webpack5 + vue2.7 为子应用
+以 [webpack5 + vue2.7](https://github.com/luojinan/webpack5-vue2.7-template) 为子应用
 
 仿照qiankun的简易微前端框架
 qiankun又是基于single-spa
@@ -522,16 +522,40 @@ export const loadApp = async ()=>{
 }
 ```
 
+## nodejs脚本批量启动前端项目
 
-## fetch 子应用资源
+初始化[vue2.7 + webpack 子应用](https://github.com/luojinan/webpack5-vue2.7-template)
+
+👇 `run.mjs`
+```js
+import { spawn } from 'node:child_process'
+import { fileURLToPath, URL } from 'node:url'
+
+const demoPath = {
+  vue2: fileURLToPath(new URL('./subApp', import.meta.url)),
+  main: fileURLToPath(new URL('./mainApp', import.meta.url))
+}
+
+Object.values(demoPath).forEach(path => {
+  spawn(`cd ${path} && pnpm dev`, { stdio: 'overlapped', shell: true })
+})
+```
+
+
+## fetch 子应用资源 38 39 40
 
 ### 解析HTML内容
 
 ### 解析JS内容
 
+## 环境变量 41 42
 
-## 沙箱机制
+## 沙箱机制 43 44 45
 
-## store存储
+## 通信 46 47 48 49
 
+## store存储 50 51 52
 
+## 性能优化 53 54
+
+## npm发布并加自动化流程 55 - 61
