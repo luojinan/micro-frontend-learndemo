@@ -541,8 +541,29 @@ Object.values(demoPath).forEach(path => {
 })
 ```
 
-
 ## fetch 子应用资源 38 39 40
+
+👇 `microCore/loadResource.ts`
+```ts
+/**
+ * fetch 请求静态资源返回文件内容
+ * @param url 
+ * @returns 
+ */
+export const fetchResource = (url:string) => {
+  return fetch(url).then(res => res.text())
+}
+```
+
+👇 跨域问题 
+
+`subApp/build/webpack.dev.config.js`
+```js
+devServer: {
+  allowedHosts: 'all', // 无效...
+  headers: { 'Access-Control-Allow-Origin': '*' }, // allowedHosts 配置了也不能跨域访问本静态资源服务器 需要配置 headers
+}
+```
 
 ### 解析HTML内容
 

@@ -1,5 +1,6 @@
 import { getMainlLifeCycles } from "../const/mainLifeCycle"
 import { findSubAppInfo, getCurrentSubappInfo } from "../utils"
+import { fetchResource } from "./loadResource"
 
 /**
  * 加载 子应用
@@ -20,7 +21,8 @@ export const loadApp = async ()=>{
   currentAppInfo?.beforeLoad?.()
 
   // 2. 加载子应用(耗时) 调 完成 生命周期
-  await sleep()
+  const htmlContent = await fetchResource(currentAppInfo.entry)
+
   mounted?.forEach(fn=>fn())
   currentAppInfo?.mounted?.()
 

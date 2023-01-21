@@ -22,7 +22,7 @@ document.querySelectorAll('li')?.forEach(ele=>{
 registerMicroApps([
   {
     name: 'vue2.7 app',
-    entry: '//localhost:7100',
+    entry: '//127.0.0.1:3002',
     container: '#yourContainer',
     activeRule: '/vue2demo',
     beforeLoad: () => console.log('vue2demo 生命周期 beforeLoad'),

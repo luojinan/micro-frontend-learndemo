@@ -7,6 +7,8 @@ module.exports = merge(baseConfig(false), {
   target: 'web',
   devServer: {
     hot: 'only',
+    allowedHosts: 'all', // 无效...
+    headers: { 'Access-Control-Allow-Origin': '*' }, // allowedHosts 配置了也不能跨域访问本静态资源服务器 需要配置 headers
     port: 3002, // 端口号，工作中从3001开始，因此增加1个到3002
     open: false, // 自动打开浏览器
     compress: true, // 开启gzip压缩
