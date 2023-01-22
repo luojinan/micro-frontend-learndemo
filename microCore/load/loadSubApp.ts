@@ -23,8 +23,9 @@ export const loadApp = async ()=>{
 
   // 2. 加载子应用(耗时) 调 完成 生命周期
   const htmlContent = await fetchResource(currentAppInfo.entry)
-  const htmlRes = pasrseHtml(htmlContent)
+  const [htmlRes, jsList] = await pasrseHtml(htmlContent, currentAppInfo.entry)
   mountSubApp(htmlRes, currentAppInfo)
+  jsList.forEach(item=>eval(item))
   
   mounted?.forEach(fn=>fn())
   currentAppInfo?.mounted?.()

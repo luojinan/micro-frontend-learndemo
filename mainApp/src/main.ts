@@ -1,7 +1,7 @@
 import { registerMicroApps, start } from '../../microCore/index';
 import './style.css'
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+document.querySelector<HTMLDivElement>('#mainapp')!.innerHTML = `
   <div>
     <img src="/vite.svg" class="logo" alt="Vite logo" />
     <h1>Vite + TypeScript</h1>

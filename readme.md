@@ -1,18 +1,18 @@
-## 微前端demo
-以 vite + 原生html/js 为宿主应用搭建微前端框架
+# 微前端demo
+以 `vite + 原生html/js` 为宿主应用搭建微前端框架
 
 以 [webpack5 + vue2.7](https://github.com/luojinan/webpack5-vue2.7-template) 为子应用
 
-仿照qiankun的简易微前端框架
-qiankun又是基于single-spa
+仿照 `qiankun` 的简易微前端框架
+`qiankun` 又是基于 `single-spa`
 所以本demo和`qiankun`、`single-spa`会很像
 
-目前不支持子应用使用 vite 打包工具，因为是读取子应用 html 直接注入主应用容器的
+目前不支持子应用使用 `vite` 打包工具，因为是读取子应用 `html` 直接注入主应用容器的
 
 而vite开发阶段dev用的是esm，并且dev拦截资源按需编译，主应用中本地不会启动子应用？
 
 
-TODO: microCore 实现现在市面上多种微前端方案, 通过不同的入口文件暴露出来使用
+TODO: `microCore` 实现现在市面上多种微前端方案, 通过不同的入口文件暴露出来使用
 
 - qiankun/single-spa 阿里
 - micor-app 京东零售
@@ -95,7 +95,7 @@ export function registerMicroApps(option :SubappInfo[]) {
 "include": ["src", "../microCore"]
 ```
 
-microCore 新增 `const/index.ts` 用于存储运行时的注册子应用信息
+`microCore` 新增 `const/index.ts` 用于存储运行时的注册子应用信息
 
 ```ts
 import type { SubappInfo } from '../type'
@@ -276,13 +276,13 @@ export const loadApp = ()=>{
   console.log('加载', currentAppInfo.activeRule)
 }
 ```
-👆 可以看出和 start 里逻辑重复, start处理初始化和刷新逻辑
+👆 可以看出和 `start` 里逻辑重复, `start` 处理初始化和刷新逻辑
 
 在路由监听逻辑里都调用这个函数
 
 ❕ 期望的效果是 子应用切换时才加载 同一个子应用不应该再次加载
 
-所以应该判断 当前已加载的子应用 与 切换的子应用是否同一个，同一个时不触发 load
+所以应该判断 当前已加载的子应用 与 切换的子应用是否同一个，同一个时不触发 `load`
 
 暂时用全局变量存 当前已加载的子应用
 
@@ -305,7 +305,7 @@ export const loadApp = ()=>{
 }
 ```
 
-ts定义 Window 全局变量 只要在 tsconfig.json 识别范围内，定义在哪都可以
+ts定义 `Window` 全局变量 只要在 `tsconfig.json` 识别范围内，定义在哪都可以
 
 👇 `microCore/type.ts`
 ```ts
@@ -320,17 +320,17 @@ declare global {
 
 一般来说和监听路由里的逻辑重复写
 
-但是尝试一下 加载页面/刷新 时触发 pushState 从而触发路由监听试试 会不会因此多出一层路由
+但是尝试一下 加载页面/刷新 时触发 `pushState` 从而触发路由监听试试 会不会因此多出一层路由
 
-/vue2demo push /vue2demo
+`/vue2demo push /vue2demo`
 
 浏览器返回时 是否会导致2层
 
-直接在控制台测试下来 pushstate 与当前 location.href 不会多出一层相同的历史
+直接在控制台测试下来 `pushstate` 与当前 `location.href` 不会多出一层相同的历史
 
-但是在实际编写的时候，在有路由历史的情况下 刷新并触发pushstate当前url 会丢失历史，相当于刷新后的路由变成了首个路由
+但是在实际编写的时候，在有路由历史的情况下 `刷新并触发pushstate当前url` 会丢失历史，相当于刷新后的路由变成了首个路由
 
-TODO: 不 pushstate 的刷新可以正常返回， 不刷新的 pushstate 也可以返回, 但是刷新 + pushstate 就这样了？？？
+TODO: 不 `pushstate` 的刷新可以正常返回， 不刷新的 `pushstate` 也可以返回, 但是刷新 + `pushstate` 就这样了？？？
 
 这里暂时先 重复写监听路由里相同的逻辑
 
@@ -358,7 +358,7 @@ export function start() {
 
 在主应用编写 生命周期
 
-microCore 的执行过程中调用传入进来的生命周期
+`microCore` 的执行过程中调用传入进来的生命周期
 
 也就是会作用于加载所有子应用的过程x
 
@@ -407,7 +407,7 @@ export interface LifeCycles {
 
 编写调用逻辑
 
-因为上面 首次加载/刷新 和 监听路由变化触发 的 loadSubApp 抽离到了一起
+因为上面 首次加载/刷新 和 监听路由变化触发 的 `loadSubApp` 抽离到了一起
 
 因此 `microCore/load/loadSubApp.ts`
 
@@ -445,7 +445,7 @@ export const loadApp = async ()=>{
 
 表示左边的表达式不能判断是否有值再赋值, 即使有 `?.` 也不能确定 innerHTML 是否存在
 
-换成 `!.` 就能排除掉前面是null和undefined的情况 `document.querySelector('#yourContainer')!.innerHTML = '子应用加载中'`
+换成 `!.` 就能排除掉前面是 `null` 和 `undefined`的情况 `document.querySelector('#yourContainer')!.innerHTML = '子应用加载中'`
 
 
 ## 子应用生命周期
@@ -541,7 +541,7 @@ Object.values(demoPath).forEach(path => {
 })
 ```
 
-## fetch 子应用资源 38 39 40
+## fetch 子应用资源
 
 👇 `microCore/loadResource.ts`
 ```ts
@@ -565,7 +565,17 @@ devServer: {
 }
 ```
 
-👇 把读取到的 html 文本内容通过 `innerHTML` 挂载到子应用配置信息的 `container` 节点上
+
+### 解析HTML内容
+
+
+👇 把读取到的 `html` 文本内容通过 `innerHTML` 挂载到子应用配置信息的 `container` 节点上
+
+```ts
+const htmlContent = await fetchResource(currentAppInfo.entry) // 请求到 html 内容
+mountSubApp(htmlRes, currentAppInfo)
+```
+
 ```ts
 const mountSubApp = (htmlContent:string, appInfo:SubappInfo) => {
   const subAppRootDom = document.querySelector(appInfo.container)
@@ -575,11 +585,80 @@ const mountSubApp = (htmlContent:string, appInfo:SubappInfo) => {
 
 至此, `html` 虽然挂载上去了, 但是子应用内容是空的, 因为子应用是 `SPA` 应用, 需要加载到子应用 `JS` 才能渲染出内容
 
-### 解析HTML内容
-
-
-
 ### 解析JS内容
+
+```ts
+/**
+ * 解析 HTMl 文本内容 成 JS/CSS/HTML 数据
+ */
+export const pasrseHtml = (htmlContent:string) => {
+
+  // 1. 创建一个div存放 fetch 到的html文本内容
+  // 这么做是为了去掉html body 标签,  方便数据处理和递归
+  const divDom = document.createElement('div')
+  divDom.innerHTML = htmlContent
+  parseScript(divDom) // 此时的 divDom 的内容是平级的 meta div script
+  
+  return htmlContent
+}
+```
+
+递归结构
+
+```ts
+const parseScript = (root: HTMLDivElement) => {
+
+  function deepParse (element) {
+    const children = element.children // 类数组 不能用forEach
+    for (const item of children) {
+      deepParse(item)
+    }
+  }
+
+  deepParse(root)
+}
+```
+
+![](https://kingan-md-img.oss-cn-guangzhou.aliyuncs.com/blog/20230122102505.png)
+
+👇 处理js
+```ts
+function deepParse (element:HTMLElement) {
+
+  if(element.nodeName.toLowerCase() === 'script') {
+    const src = element.getAttribute('src')
+    if(!src) {
+      // 非外部链接的js资源 内联逻辑
+      script.push(element.outerHTML)
+    } else {
+      // 外部链接 绝对路径/相对路径
+      if(src.startsWith('http')) {
+        scriptUrl.push(src)
+      }else{
+        scriptUrl.push(`http:${entry}/${src}`)
+      }
+    }
+  }
+
+  const children = element.children // 类数组 不能用forEach
+  for (const item of children) {
+    deepParse(item)
+  }
+}
+```
+
+得到 `script` 请求的 绝对路径, 通过 `fetch` 请求得到 js文本内容
+
+👇 通过 `eval` 执行 js文本内容
+```ts
+const [htmlRes, jsList] = await pasrseHtml(htmlContent, currentAppInfo.entry)
+mountSubApp(htmlRes, currentAppInfo)
+jsList.forEach(item => eval(item))
+```
+
+至此 子应用的 内容也渲染出来了
+
+![](https://kingan-md-img.oss-cn-guangzhou.aliyuncs.com/blog/20230122111055.png)
 
 ## 环境变量 41 42
 
