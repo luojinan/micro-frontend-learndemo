@@ -21,19 +21,23 @@ export const loadApp = async ()=>{
   beforeLoad?.forEach(fn=>fn())
   currentAppInfo?.beforeLoad?.()
 
+  // 已经触发了 pushstate 相应的变量要修改 否则逻辑中断时 作为判断条件的以下变量会异常
+  window.__ORIGIN_SUB_APP__ = window.__CURRENT_SUB_APP__ // 修改 __CURRENT_SUB_APP__ 的值前 记录原值作为 preSubApp
+  window.__CURRENT_SUB_APP__ = currentAppInfo.activeRule // 定义 当前已加载的子应用 判断同一个子应用不触发load
+
   // 2. 加载子应用(耗时) 调 完成 生命周期
   const htmlContent = await fetchResource(currentAppInfo.entry)
   const [htmlRes, jsList] = await pasrseHtml(htmlContent, currentAppInfo.entry)
   mountSubApp(htmlRes, currentAppInfo)
 
   window.__MICRO_WEB__ = true // 执行子应用入口逻辑前 设置环境变量
-  jsList.forEach(item=>eval(item))
+  // window.exports = {}
+  jsList.forEach(item => eval(item)) // 触发第二次 eval 全局模块变量会被置空?
+  // console.log(window.exports)
+  window[currentAppInfo.name]?.mounted?.() // TODO: TS 怎么写变量属性 要求 [变量是数字]
   
   mounted?.forEach(fn=>fn())
-  currentAppInfo?.mounted?.()
-
-  window.__ORIGIN_SUB_APP__ = window.__CURRENT_SUB_APP__ // 修改 __CURRENT_SUB_APP__ 的值前 记录原值作为 preSubApp
-  window.__CURRENT_SUB_APP__ = currentAppInfo.activeRule // 定义 当前已加载的子应用 判断同一个子应用不触发load
+  // currentAppInfo?.mounted?.()
 
   // 3. 销毁上一个子应用调 销毁 生命周期
   const preSubApp = findSubAppInfo(window.__ORIGIN_SUB_APP__)

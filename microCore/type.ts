@@ -20,6 +20,12 @@ declare global {
   interface Window {
     __CURRENT_SUB_APP__: string;
     __ORIGIN_SUB_APP__: string;
-    __MICRO_WEB__: boolean
+    __MICRO_WEB__: boolean;
+    exports: {};
+    vue2demo: {
+      beforeLoad?: Function;
+      mounted?: Function;
+      destoryed?: Function;
+    }
   }
 }

@@ -21,7 +21,7 @@ document.querySelectorAll('li')?.forEach(ele=>{
 
 registerMicroApps([
   {
-    name: 'vue2.7 app',
+    name: 'vue2demo', // 要和子应用 umd 全局变量同名
     entry: '//127.0.0.1:3002',
     container: '#yourContainer',
     activeRule: '/vue2demo'
