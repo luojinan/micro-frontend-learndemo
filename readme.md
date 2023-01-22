@@ -723,8 +723,169 @@ output: {
 
 ### 执行js文本获取抛出的变量
 
+要获取到 umd 模块化抛出的内容, 只要满足一种判断条件就行
+
+- CJS
+- AMD
+- 全局变量
+
+视频的做法是通过全局变量获取到里面抛出的内容
+```ts
+window.__MICRO_WEB__ = true // 执行子应用入口逻辑前 设置环境变量
+jsList.forEach(item => eval(item))
+
+console.log(window.vue2demo) // <-- this { beforeLoad, ... }
+```
+👆 TODO: 奇怪的是只能执行一次, 如 vue2 -> vue3 -> vue2 第二次 vue2 加载并执行 umd 后, window.vue2demo 为 undefined, 无法执行 mounted
+
+可以用 tsup 打包一个简单模块化 umd 包尝试访问多次
+
+除此之外， 我们还可以伪造一个符合 CJS 判断条件的对象用于获取
+
+手写过 CJS 就知道该模块化的本质就是往一个对象中存储数据, 再获取出来
+
+```ts
+window.__MICRO_WEB__ = true // 执行子应用入口逻辑前 设置环境变量
+
+window.exports = {} // <-- this
+jsList.forEach(item => eval(item))
+
+console.log(window.exports) // <-- this { vue2demo: { beforeLoad, ...} }
+```
 
 ## 沙箱机制 43 44 45
+
+在子应用js逻辑中挂载挂载变量到 `window` 上, 希望这个操作被隔离
+
+因为子应用所有的 js 逻辑都在 `UMD` 模块化中
+
+只要想办法把这个 `UMD` 模块内部的 `window` 被改写就可以了
+
+可以通过局部变量实现 模块内访问 `window` 就优先取局部变量
+
+首先 我们需要一个被改写的 `window` (也就是一份拷贝)
+这种方式称为 `快照沙箱`
+```ts
+export const snapShotSandbox = () => {
+  const sandboxWindow = {}
+
+  const getSandboxWindow = ()=>{
+    return sandboxWindow
+  }
+
+  const active = () => {
+    for (const key in window) {
+      sandboxWindow[key] = window[key]
+    }
+    return getSandboxWindow()
+  }
+
+  const inactive = () => {
+    for (const key in window) {
+      const sandboxVal = sandboxWindow[key]
+      if(window[key] !== sandboxVal) {
+        try {
+          window[key] = sandboxVal
+        } catch (error) {
+          console.log('还原快照window err', error)
+        }
+      }
+    }
+  }
+  return {
+    active, inactive
+  }
+}
+```
+
+👇 注入到 umd 中
+```ts
+const jsText = `
+  (()=>{
+    const self = ${sandboxWindow}
+    ${item}
+  })()
+`
+eval(jsText)
+```
+👆 模板字符串语法中拼接的变量 对象时被转字符串会是 `[object Object]`
+
+因此不能这么把 拷贝的 window 塞进去
+
+只能挂载在 window 下, 通过字符串访问到
+```ts
+const { active } = snapShotSandbox()
+window.sandboxWindow = active()
+
+const jsText = `
+  (()=>{
+    const self = window.sandboxWindow
+    ${item}
+  })()
+`
+eval(jsText)
+```
+👆 报错 self is not a function
+
+猜测不能用 self 变量, 会自动被浏览器转为 window
+
+
+```ts
+const jsText = `
+  (()=>{
+    const window = window.sandboxWindow
+    ${item}
+  })()
+`
+```
+👆 报错 window 内置变量不能作变量名
+
+```ts
+const jsText = `
+  ((window)=>{
+    ${item}
+  })(window.sandboxWindow)
+`
+eval(jsText)
+```
+
+![](https://kingan-md-img.oss-cn-guangzhou.aliyuncs.com/blog/20230122185558.png)
+👆 可以发现这样也是不对的
+
+我们再来🤔一下
+
+在子应用js逻辑中挂载挂载变量到 `window` 上, 希望这个操作被隔离
+
+只要想办法把 `UMD` 模块内部的 `window` 被改写就可以了
+
+可以通过局部变量实现 模块内访问 `window` 就优先取局部变量
+
+👆 这种思路的效果就子应用操作的是自己的作用域, 这样就不不像是一个应用了
+
+要的效果是 切换到 子应用A , 快照拷贝一份被子应用操作前的 `window`
+
+当切换到其他子应用前把 `window` 还原为快照 `window` (也就是子应用操作的是真正的 `window` 只不过这次操作会在之后还原)
+
+
+👇 umd 执行依然直接操作 window
+```ts
+jsList.forEach(item => eval(item)) // 触发第二次 eval 全局模块变量会被置空?
+```
+
+👇 通过销毁子应用时机 还原回原来的 window
+```ts
+const { active, inactive } = snapShotSandbox()
+currentAppInfo.sandbox = { active, inactive } // 存储到子应用信息中 用于通过上一个子应用来还原对应的(每个子应用的沙箱快照不同)沙箱快照
+active()
+
+// 3. 销毁上一个子应用调 销毁 生命周期
+const preSubApp = findSubAppInfo(window.__ORIGIN_SUB_APP__)
+if(preSubApp) {
+  // 还原 window 为快照
+  preSubApp?.sandbox?.inactive()
+}
+```
+
 
 ## 通信 46 47 48 49
 

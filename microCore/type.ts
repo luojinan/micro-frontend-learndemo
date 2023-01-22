@@ -6,7 +6,8 @@ export interface SubappInfo {
   activeRule: string,
   beforeLoad?: Function,
   mounted?: Function,
-  destoryed?: Function
+  destoryed?: Function,
+  sandbox?: {active:Function, inactive:Function },
 }
 
 export interface LifeCycles {

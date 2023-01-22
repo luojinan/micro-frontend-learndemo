@@ -1,4 +1,5 @@
 import { getMainlLifeCycles } from "../const/mainLifeCycle"
+import { snapShotSandbox } from "../sandbox/snapShotbox"
 import { SubappInfo } from "../type"
 import { findSubAppInfo, getCurrentSubappInfo } from "../utils"
 import { fetchResource, pasrseHtml } from "./loadResource"
@@ -24,13 +25,27 @@ export const loadApp = async ()=>{
   // 已经触发了 pushstate 相应的变量要修改 否则逻辑中断时 作为判断条件的以下变量会异常
   window.__ORIGIN_SUB_APP__ = window.__CURRENT_SUB_APP__ // 修改 __CURRENT_SUB_APP__ 的值前 记录原值作为 preSubApp
   window.__CURRENT_SUB_APP__ = currentAppInfo.activeRule // 定义 当前已加载的子应用 判断同一个子应用不触发load
+  window.__MICRO_WEB__ = true // 执行子应用入口逻辑前 设置环境变量
+
+  const { active, inactive } = snapShotSandbox()
+  currentAppInfo.sandbox = { active, inactive } // 存储到子应用信息中 用于通过上一个子应用来还原对应的(每个子应用的沙箱快照不同)沙箱快照
+  active()
+
+  // 3. 销毁上一个子应用调 销毁 生命周期
+  const preSubApp = findSubAppInfo(window.__ORIGIN_SUB_APP__)
+  if(preSubApp) {
+    // 还原 window 为快照
+    preSubApp?.sandbox?.inactive()
+
+    destoryed?.forEach(fn=>fn())
+    preSubApp?.destoryed?.()
+  }
 
   // 2. 加载子应用(耗时) 调 完成 生命周期
   const htmlContent = await fetchResource(currentAppInfo.entry)
   const [htmlRes, jsList] = await pasrseHtml(htmlContent, currentAppInfo.entry)
   mountSubApp(htmlRes, currentAppInfo)
 
-  window.__MICRO_WEB__ = true // 执行子应用入口逻辑前 设置环境变量
   // window.exports = {}
   jsList.forEach(item => eval(item)) // 触发第二次 eval 全局模块变量会被置空?
   // console.log(window.exports)
@@ -38,13 +53,6 @@ export const loadApp = async ()=>{
   
   mounted?.forEach(fn=>fn())
   // currentAppInfo?.mounted?.()
-
-  // 3. 销毁上一个子应用调 销毁 生命周期
-  const preSubApp = findSubAppInfo(window.__ORIGIN_SUB_APP__)
-  if(preSubApp) {
-    destoryed?.forEach(fn=>fn())
-    preSubApp?.destoryed?.()
-  }
 }
 
 const mountSubApp = (htmlContent:string, appInfo:SubappInfo) => {
