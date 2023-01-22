@@ -25,6 +25,8 @@ export const loadApp = async ()=>{
   const htmlContent = await fetchResource(currentAppInfo.entry)
   const [htmlRes, jsList] = await pasrseHtml(htmlContent, currentAppInfo.entry)
   mountSubApp(htmlRes, currentAppInfo)
+
+  window.__MICRO_WEB__ = true // 执行子应用入口逻辑前 设置环境变量
   jsList.forEach(item=>eval(item))
   
   mounted?.forEach(fn=>fn())

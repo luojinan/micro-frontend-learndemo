@@ -19,6 +19,7 @@ export interface LifeCycles {
 declare global {
   interface Window {
     __CURRENT_SUB_APP__: string;
-    __ORIGIN_SUB_APP__: string
+    __ORIGIN_SUB_APP__: string;
+    __MICRO_WEB__: boolean
   }
 }

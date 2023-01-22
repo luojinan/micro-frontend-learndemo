@@ -9,8 +9,14 @@ const render = () => {
   }).$mount('#app')
 }
 
-render()
+// 入口逻辑立即执行 new Vue 改为非微前端环境下 执行
+if (!window.__MICRO_WEB__) {
+  render()
+}
 
 export const beforeLoad = () => console.log('vue2demo 生命周期 beforeLoad')
-export const mounted = () => console.log('vue2demo 生命周期 mounted')
+export const mounted = () => {
+  console.log('vue2demo 生命周期 mounted')
+  render() // 微前端环境下 由生命周期执行 new Vue
+}
 export const destoryed = () => console.log('vue2demo 生命周期 destoryed')
