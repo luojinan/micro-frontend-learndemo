@@ -698,7 +698,28 @@ export const mounted = () => {
 export const destoryed = () => console.log('vue2demo 生命周期 destoryed')
 ```
 
+👇 执行子应用入口逻辑前 设置环境变量
+```ts
+window.__MICRO_WEB__ = true // 执行子应用入口逻辑前 设置环境变量
+jsList.forEach(item=>eval(item))
+```
+
 ### 修改子应用打包模块化方式
+
+👇 子应用 出口配置 `webpack`
+```js
+output: {
+  path: resolveApp('dist'),
+  filename: 'js/[name].[hash:6].js',
+  chunkFilename: 'js/[name].chunk.[hash:4].js',
+
+  // 把子应用打包成 umd 库格式 // <-- this
+  library: 'vue2demo',
+  libraryTarget: 'umd'
+}
+```
+
+![](https://kingan-md-img.oss-cn-guangzhou.aliyuncs.com/blog/20230122162404.png)
 
 ### 执行js文本获取抛出的变量
 

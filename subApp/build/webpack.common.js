@@ -13,7 +13,11 @@ module.exports = (isProduction) => {
     output: {
       path: resolveApp('dist'),
       filename: 'js/[name].[hash:6].js',
-      chunkFilename: 'js/[name].chunk.[hash:4].js'
+      chunkFilename: 'js/[name].chunk.[hash:4].js',
+
+      // 把子应用打包成 umd 库格式
+      library: 'vue2demo',
+      libraryTarget: 'umd'
     },
     resolve: {
       extensions: ['.js', '.jsx', '.vue', '.json', '...'],
