@@ -660,7 +660,7 @@ jsList.forEach(item => eval(item))
 
 ![](https://kingan-md-img.oss-cn-guangzhou.aliyuncs.com/blog/20230122111055.png)
 
-## 调整子应用生命周期及模块化 41 42
+## 调整子应用生命周期及模块化
 
 为了允许 子应用 前端应用可以独立运行(不依靠主应用)
 
@@ -753,7 +753,7 @@ jsList.forEach(item => eval(item))
 console.log(window.exports) // <-- this { vue2demo: { beforeLoad, ...} }
 ```
 
-## 沙箱机制 43 44 45
+## 沙箱机制
 
 ### 快照沙箱
 在子应用js逻辑中挂载挂载变量到 `window` 上, 希望这个操作被隔离
@@ -960,10 +960,80 @@ setup(){
   }
 }
 ```
+## 样式隔离
+
+### CSS Modules
+
+### shadow DOM
+
+### 子应用单独css文件
+
+webpack 一般打包生产环境的 css 会拆分出来
+
+而只要拆分出来 根据子应用切换请求以及移除相关 CSS 文件 就自然形成了样式隔离
 
 ## 通信 46 47 48 49
 
+- 通过生命周期 往 子应用info 里放一个共享数据/方法 自定义数据结构来操作对方
+- customevent - 原生自带的发布订阅功能 等同于 自己写个发布订阅类 eventBus.on/emit
+
 ## store存储 50 51 52
+
+主应用 入口文件往 window 上挂载 store
+
+子应用通过 window.store 操作 (没有vue的响应式功能, 只是普通的数据存储共享)
+
+```ts
+import { Store } from "../type"
+/**
+ * 操作存储数据的功能 store
+ * 并 提供 发布订阅 update 后自动触发
+ */
+export const createStore:()=>Store = () => {
+  let store = {}
+  const observers: Function[] = []
+
+  const getStore = () => store
+
+  const setStore = (newVal:{}) => {
+    // newVal 不等于 原数据 才触发发布订阅
+    if(newVal !== store) {
+      const oldVal = store // 暂存后 赋新值
+      store = newVal
+      observers.forEach(fn => fn(newVal, oldVal))
+    }
+  }
+
+  const addSubscribe = (fn: Function) => {
+    observers.push(fn)
+  }
+
+  return {
+    getStore, setStore, addSubscribe
+  }
+}
+```
+
+
+👇 主应用 
+```ts
+window.store = createStore()
+window.store.addSubscribe((newVal:{}, oldVal:{}) => {
+  console.log('Subscribe', newVal,oldVal)
+})
+
+const originStore = window.store.getStore()
+window.store.setStore({
+  ...originStore,
+  a: 'a'
+})
+
+registerMicroApps()
+start()
+```
+
+子应用就可以通过 window.store 操作
+
 
 ## 性能优化 53 54
 

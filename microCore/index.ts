@@ -4,6 +4,7 @@ import { setMainlLifeCycles } from './const/mainLifeCycle'
 import { loadApp } from './load/loadSubApp'
 import { rewriteRouter } from './router/rewriteRouter'
 import type { LifeCycles, SubappInfo } from './type'
+export { createStore } from './store'
 
 export function registerMicroApps(option :SubappInfo[], lifeCycles: LifeCycles) {
   setAppList(option)

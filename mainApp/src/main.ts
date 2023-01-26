@@ -1,4 +1,4 @@
-import { registerMicroApps, start } from '../../microCore/index';
+import { createStore, registerMicroApps, start } from '../../microCore/index';
 import './style.css'
 
 document.querySelector<HTMLDivElement>('#mainapp')!.innerHTML = `
@@ -22,6 +22,18 @@ document.querySelectorAll('li')?.forEach(ele=>{
 document.querySelector('button')?.addEventListener('click', ()=>{
   console.log(window.a)
 })
+
+window.store = createStore()
+window.store.addSubscribe((newVal:{}, oldVal:{}) => {
+  console.log('Subscribe', newVal,oldVal)
+})
+
+const originStore = window.store.getStore()
+window.store.setStore({
+  ...originStore,
+  a: 'a'
+})
+
 
 registerMicroApps([
   {

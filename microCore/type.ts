@@ -16,6 +16,11 @@ export interface LifeCycles {
   destoryed?: Function[],
 }
 
+export interface Store {
+  getStore:Function,
+  setStore:({})=>void,
+  addSubscribe:(arg0: Function) => void
+}
 
 declare global {
   interface Window {
@@ -28,6 +33,7 @@ declare global {
       mounted?: Function;
       destoryed?: Function;
     },
-    proxyWindow: {}
+    proxyWindow: {},
+    store: Store
   }
 }
