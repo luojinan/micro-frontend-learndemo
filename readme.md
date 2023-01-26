@@ -1037,4 +1037,28 @@ start()
 
 ## 性能优化 53 54
 
+### 缓存子应用静态资源
+
+首次 fetch 子应用 html/JS 时缓存
+后续切换时不发出 fetch 请求
+
+```ts
+const cache = {} // 以子应用name 来缓存html/JS 内容
+
+// 2. 加载子应用(耗时) 调 完成 生命周期
+// 添加缓存判断
+if(!cache[currentAppInfo.name]) {
+  const htmlContent = await fetchResource(currentAppInfo.entry)
+  const [htmlRes, jsList] = await pasrseHtml(htmlContent, currentAppInfo.entry)
+  cache[currentAppInfo.name] = [htmlRes, jsList] // 添加缓存
+}
+
+const [htmlRes, jsList] = cache[currentAppInfo.name]
+mountSubApp(htmlRes, currentAppInfo)
+```
+
+### 预加载子应用
+
+加载当前子应用结束后 就加载其他子应用
+
 ## npm发布并加自动化流程 55 - 61
