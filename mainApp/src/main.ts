@@ -10,6 +10,7 @@ document.querySelector<HTMLDivElement>('#mainapp')!.innerHTML = `
       <li>/vue2demo#page2</li>
       <li>/vue3demo#page1</li>
     </ul>
+    <button>get window.a</button>
     <div id="yourContainer"></div>
   </div>
 `
@@ -17,6 +18,9 @@ document.querySelectorAll('li')?.forEach(ele=>{
   ele.addEventListener('click',()=>{
     window.history.pushState(null,'', ele.innerText)
   })
+})
+document.querySelector('button')?.addEventListener('click', ()=>{
+  console.log(window.a)
 })
 
 registerMicroApps([

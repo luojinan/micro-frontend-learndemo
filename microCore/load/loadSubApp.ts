@@ -1,4 +1,5 @@
 import { getMainlLifeCycles } from "../const/mainLifeCycle"
+import { proxySandbox } from "../sandbox/proxySandbox"
 import { snapShotSandbox } from "../sandbox/snapShotbox"
 import { SubappInfo } from "../type"
 import { findSubAppInfo, getCurrentSubappInfo } from "../utils"
@@ -27,9 +28,10 @@ export const loadApp = async ()=>{
   window.__CURRENT_SUB_APP__ = currentAppInfo.activeRule // 定义 当前已加载的子应用 判断同一个子应用不触发load
   window.__MICRO_WEB__ = true // 执行子应用入口逻辑前 设置环境变量
 
-  const { active, inactive } = snapShotSandbox()
+  // const { active, inactive } = snapShotSandbox()
+  const {active, inactive} = proxySandbox()
   currentAppInfo.sandbox = { active, inactive } // 存储到子应用信息中 用于通过上一个子应用来还原对应的(每个子应用的沙箱快照不同)沙箱快照
-  active()
+  const proxyWindow = active()
 
   // 3. 销毁上一个子应用调 销毁 生命周期
   const preSubApp = findSubAppInfo(window.__ORIGIN_SUB_APP__)
@@ -47,7 +49,15 @@ export const loadApp = async ()=>{
   mountSubApp(htmlRes, currentAppInfo)
 
   // window.exports = {}
-  jsList.forEach(item => eval(item)) // 触发第二次 eval 全局模块变量会被置空?
+  // jsList.forEach(item => eval(item)) // 触发第二次 eval 全局模块变量会被置空?
+  window.proxyWindow = proxyWindow
+  jsList.forEach(item => {
+    eval(`
+      ((window)=>{
+        ${item}
+      })(window.proxyWindow)
+    `)
+  })
   // console.log(window.exports)
   window[currentAppInfo.name]?.mounted?.() // TODO: TS 怎么写变量属性 要求 [变量是数字]
   

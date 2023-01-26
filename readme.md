@@ -755,6 +755,7 @@ console.log(window.exports) // <-- this { vue2demo: { beforeLoad, ...} }
 
 ## 沙箱机制 43 44 45
 
+### 快照沙箱
 在子应用js逻辑中挂载挂载变量到 `window` 上, 希望这个操作被隔离
 
 因为子应用所有的 js 逻辑都在 `UMD` 模块化中
@@ -886,6 +887,79 @@ if(preSubApp) {
 }
 ```
 
+### 代理沙箱
+
+快照沙箱不支持同时启动多个子应用
+
+通过 new Proxy 让所有子应用操作的 window 是另一个对象(模块化中传入的window不能是原window 而是代理后的window)
+
+set 的都是另一个对象
+
+get 时则判断另一个对象属性是否存在，不存在则取原 window 上的属性
+
+```ts
+export const proxySandbox = () => {
+  let proxyWindow = {} // 每个子应用都调用一次 active 即 proxyWindow 不会复用
+
+  const active = () => {
+    return new Proxy(window, {
+      get(window, key){
+        return proxyWindow[key] || window[key]
+      },
+      set(window, key, newVal){
+        proxyWindow[key] = newVal
+        return true
+      }
+    })
+  }
+
+  const inactive = () => {
+    proxyWindow = {}
+  }
+
+  return {
+    active, inactive
+  }
+}
+```
+
+```ts
+// const { active, inactive } = snapShotSandbox() // <-- this
+const {active, inactive} = proxySandbox()
+currentAppInfo.sandbox = { active, inactive } // 存储到子应用信息中 用于通过上一个子应用来还原对应的(每个子应用的沙箱快照不同)沙箱快照
+const proxyWindow = active()
+
+
+// jsList.forEach(item => eval(item)) // 触发第二次 eval 全局模块变量会被置空?
+window.proxyWindow = proxyWindow
+jsList.forEach(item => {
+  eval(`
+    ((window)=>{
+      ${item}
+    })(window.proxyWindow)
+  `)
+})
+```
+👆 [快照沙箱](#快照沙箱) 中提到不能用 window 作变量名来改写, 因此用 window 的临时变量传入(当多个子应用时 临时变量将根据执行顺序需要被多次改写, 因此多个子应用时属于不可信的变量, 不建议操作或读取它)
+
+验证: 主/子应用 分别加一个按钮 console 出 window.a (用控制台不能操作到代理后 window, 只会输出原 window)
+
+```ts
+// 主应用
+document.querySelector('button')?.addEventListener('click', ()=>{
+  console.log(window.a) // --> undefined
+})
+
+// vue2.7 子应用
+setup(){
+  function getWindowA () {
+    console.log(window.a) // --> '1'
+  }
+  return {
+    getWindowA
+  }
+}
+```
 
 ## 通信 46 47 48 49
 

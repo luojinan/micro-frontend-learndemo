@@ -27,6 +27,7 @@ declare global {
       beforeLoad?: Function;
       mounted?: Function;
       destoryed?: Function;
-    }
+    },
+    proxyWindow: {}
   }
 }

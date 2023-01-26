@@ -2,6 +2,7 @@
   <div id="app">
     app {{ count }}
     <button @click="addCount">add</button>
+    <button @click="getWindowA">get window.a</button>
   </div>
 </template>
 
@@ -15,9 +16,13 @@ export default {
     function addCount () {
       count.value++
     }
+    function getWindowA () {
+      console.log(window.a)
+    }
     return {
       count,
-      addCount
+      addCount,
+      getWindowA
     }
   }
 }
