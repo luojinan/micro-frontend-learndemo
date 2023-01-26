@@ -1061,4 +1061,51 @@ mountSubApp(htmlRes, currentAppInfo)
 
 加载当前子应用结束后 就加载其他子应用
 
+👇 主应用
+```ts
+registerMicroApps()
+
+start()
+
+preFetchApp(['/vue2demo'])
+```
+
+```ts
+import { findSubAppInfo, getUrlPathName } from "../utils"
+import { fetchApp } from "./cacheFetch"
+
+export const preFetchApp = (appNameList:string[]) => {
+  appNameList.forEach(appname => {
+    const urlAppName = getUrlPathName()
+    if(urlAppName === appname) return  // 当前pathname加载由 start 触发 return 避免重复加载
+
+    const appinfo = findSubAppInfo(appname)
+    if(appinfo) {
+      fetchApp(appinfo)
+    }
+  })
+}
+```
+
+```ts
+import { SubappInfo } from "../type"
+import { fetchResource, pasrseHtml } from "./loadResource"
+
+const cache = {} // 以子应用name 来缓存html/JS 内容
+
+export const fetchApp = async (appinfo:SubappInfo) => {
+  // 添加缓存判断
+  if(!cache[appinfo.name]) {
+    const htmlContent = await fetchResource(appinfo.entry)
+    const [htmlRes, jsList] = await pasrseHtml(htmlContent, appinfo.entry)
+    cache[appinfo.name] = [htmlRes, jsList] // 添加缓存
+  }
+
+  return cache[appinfo.name]
+}
+```
+
+ts 怎么定义 运行时的 对象数据
+如👆 `cahce[name]` 其中name 是用户输入的值 用 typeof ？
+
 ## npm发布并加自动化流程 55 - 61

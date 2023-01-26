@@ -1,4 +1,4 @@
-import { createStore, registerMicroApps, start } from '../../microCore/index';
+import { createStore, preFetchApp, registerMicroApps, start } from '../../microCore/index';
 import './style.css'
 
 document.querySelector<HTMLDivElement>('#mainapp')!.innerHTML = `
@@ -72,3 +72,5 @@ registerMicroApps([
 });
 
 start()
+
+preFetchApp(['/vue2demo'])

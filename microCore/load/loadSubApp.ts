@@ -3,9 +3,7 @@ import { proxySandbox } from "../sandbox/proxySandbox"
 import { snapShotSandbox } from "../sandbox/snapShotbox"
 import { SubappInfo } from "../type"
 import { findSubAppInfo, getCurrentSubappInfo } from "../utils"
-import { fetchResource, pasrseHtml } from "./loadResource"
-
-const cache = {} // 以子应用name 来缓存html/JS 内容
+import { fetchApp } from "./cacheFetch"
 
 /**
  * 加载 子应用
@@ -46,14 +44,7 @@ export const loadApp = async ()=>{
   }
 
   // 2. 加载子应用(耗时) 调 完成 生命周期
-  // 添加缓存判断
-  if(!cache[currentAppInfo.name]) {
-    const htmlContent = await fetchResource(currentAppInfo.entry)
-    const [htmlRes, jsList] = await pasrseHtml(htmlContent, currentAppInfo.entry)
-    cache[currentAppInfo.name] = [htmlRes, jsList] // 添加缓存
-  }
-
-  const [htmlRes, jsList] = cache[currentAppInfo.name]
+  const [htmlRes, jsList] = await fetchApp(currentAppInfo)
   mountSubApp(htmlRes, currentAppInfo)
 
   // window.exports = {}

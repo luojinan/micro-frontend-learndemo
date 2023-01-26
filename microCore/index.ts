@@ -5,6 +5,7 @@ import { loadApp } from './load/loadSubApp'
 import { rewriteRouter } from './router/rewriteRouter'
 import type { LifeCycles, SubappInfo } from './type'
 export { createStore } from './store'
+export { preFetchApp } from './load/preFetch'
 
 export function registerMicroApps(option :SubappInfo[], lifeCycles: LifeCycles) {
   setAppList(option)
