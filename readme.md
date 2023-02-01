@@ -1,9 +1,10 @@
-# 微前端demo
+# 手写微前端demo
 以 `vite + 原生html/js` 为宿主应用搭建微前端框架
 
 以 [webpack5 + vue2.7](https://github.com/luojinan/webpack5-vue2.7-template) 为子应用
 
 仿照 `qiankun` 的简易微前端框架
+
 `qiankun` 又是基于 `single-spa`
 所以本demo和`qiankun`、`single-spa`会很像
 
@@ -11,6 +12,7 @@
 
 而vite开发阶段dev用的是esm，并且dev拦截资源按需编译，主应用中本地不会启动子应用？
 
+TODO: 微前端原理 另开一篇讲
 
 TODO: `microCore` 实现现在市面上多种微前端方案, 通过不同的入口文件暴露出来使用
 
@@ -50,6 +52,9 @@ start();
 
 如 `vite.config.ts` 中的 `defineConfig({})`
 
+### 创建主应用
+使用 vite 创建原生 html 应用
+
 👇 `mainApp/src/main.ts`
 
 ```ts
@@ -72,6 +77,16 @@ registerMicroApps([
   }
 ]);
 ```
+👆 删除一些多余内容, 并按 `qiankun` 调用注册子应用方法 `registerMicroApps`
+
+### 创建微应用核心库
+
+因为是主应用调用核心库, 因此主应用的 `ts` 配置需要包含 `核心库` 目录
+
+配置 `mainApp/tsconfig.json` 添加 `"../microCore"`
+```json
+"include": ["src", "../microCore"]
+```
 
 👇 `microCore/index.ts`
 ```ts
@@ -89,11 +104,6 @@ export function registerMicroApps(option :SubappInfo[]) {
 ```
 
 ![](https://kingan-md-img.oss-cn-guangzhou.aliyuncs.com/blog/20230118163805.png)
-
-配置 `mainApp/tsconfig.json` 添加 `"../microCore"`
-```json
-"include": ["src", "../microCore"]
-```
 
 `microCore` 新增 `const/index.ts` 用于存储运行时的注册子应用信息
 
@@ -117,6 +127,7 @@ export function registerMicroApps(option :SubappInfo[]) {
 ```
 
 ## 拦截路由
+完成注册子应用信息后, 调用 `微前端核心库` 的 `start` 来重写路由机制, 让子应用的路由都经过 `核心库`
 
 👇 `microCore/router/rewriteRouter.ts`
 ```ts
@@ -187,7 +198,7 @@ function rewriteOriginFn(originFn, eventListenerName) {
 
 通过 `location` 中的 `pathName` 来匹配注册信息中的子应用数据对象
 
-在 `VueRouter` 原理中 我们利用 `Vue.util.reactive` 把当前Url数据转为响应式数据
+在 `VueRouter` 原理文章中 我们利用 `Vue.util.reactive` 把当前Url数据转为响应式数据
 
 通过 `watch` 来触发 回调 `render`
 
@@ -350,7 +361,7 @@ export function start() {
   // console.log('init currentAppInfo',location.pathname + location.hash)
   // history.pushState(null, '', location.href)
   // window.__CURRENT_SUB_APP__ = currentAppInfo.activeRule // 定义 当前已加载的子应用 判断同一个子应用不触发load
-  loadApp()
+  loadApp() // <-- this
 }
 ```
 
@@ -447,6 +458,8 @@ export const loadApp = async ()=>{
 
 换成 `!.` 就能排除掉前面是 `null` 和 `undefined`的情况 `document.querySelector('#yourContainer')!.innerHTML = '子应用加载中'`
 
+TODO:
+
 
 ## 子应用生命周期
 
@@ -541,7 +554,7 @@ Object.values(demoPath).forEach(path => {
 })
 ```
 
-## fetch 子应用资源
+## 加载并渲染子应用资源
 
 👇 `microCore/loadResource.ts`
 ```ts
@@ -564,10 +577,9 @@ devServer: {
   headers: { 'Access-Control-Allow-Origin': '*' }, // allowedHosts 配置了也不能跨域访问本静态资源服务器 需要配置 headers
 }
 ```
-
+👆 子应用 `devServer` 配置允许跨域
 
 ### 解析HTML内容
-
 
 👇 把读取到的 `html` 文本内容通过 `innerHTML` 挂载到子应用配置信息的 `container` 节点上
 
@@ -662,6 +674,8 @@ jsList.forEach(item => eval(item))
 
 ## 调整子应用生命周期及模块化
 
+👆 配置子应用生命周期是在 注册子应用信息 时编写的
+
 为了允许 子应用 前端应用可以独立运行(不依靠主应用)
 
 需要 子应用 的入口逻辑分为2种情况触发
@@ -719,6 +733,7 @@ output: {
 }
 ```
 
+👇 `devServer` 打包后的 `chunk`
 ![](https://kingan-md-img.oss-cn-guangzhou.aliyuncs.com/blog/20230122162404.png)
 
 ### 执行js文本获取抛出的变量
@@ -851,7 +866,8 @@ eval(jsText)
 ```
 
 ![](https://kingan-md-img.oss-cn-guangzhou.aliyuncs.com/blog/20230122185558.png)
-👆 可以发现这样也是不对的
+
+👆 可以发现这样也是不对的 要通过 `window.sandboxWindow` 才能访问
 
 我们再来🤔一下
 
@@ -891,11 +907,11 @@ if(preSubApp) {
 
 快照沙箱不支持同时启动多个子应用
 
-通过 new Proxy 让所有子应用操作的 window 是另一个对象(模块化中传入的window不能是原window 而是代理后的window)
+通过 `new Proxy` 让所有子应用操作的 `window` 是另一个对象(模块化中传入的 `window` 不能是原 `window` 而是代理后的 `window`)
 
-set 的都是另一个对象
+`set` 的都是另一个对象
 
-get 时则判断另一个对象属性是否存在，不存在则取原 window 上的属性
+`get` 时则判断另一个对象属性是否存在，不存在则取原 window 上的属性
 
 ```ts
 export const proxySandbox = () => {
@@ -942,7 +958,7 @@ jsList.forEach(item => {
 ```
 👆 [快照沙箱](#快照沙箱) 中提到不能用 window 作变量名来改写, 因此用 window 的临时变量传入(当多个子应用时 临时变量将根据执行顺序需要被多次改写, 因此多个子应用时属于不可信的变量, 不建议操作或读取它)
 
-验证: 主/子应用 分别加一个按钮 console 出 window.a (用控制台不能操作到代理后 window, 只会输出原 window)
+验证: 主/子应用 分别加一个按钮 `console` 出 `window.a` (用控制台不能操作到代理后 `window`, 只会输出原 `window`)
 
 ```ts
 // 主应用
@@ -977,12 +993,13 @@ webpack 一般打包生产环境的 css 会拆分出来
 - 通过生命周期 往 子应用info 里放一个共享数据/方法 自定义数据结构来操作对方
 - customevent - 原生自带的发布订阅功能 等同于 自己写个发布订阅类 eventBus.on/emit
 
-## store存储 50 51 52
+## store存储
 
-主应用 入口文件往 window 上挂载 store
+主应用 入口文件往 `window` 上挂载微前端核心提供的 `store`
 
-子应用通过 window.store 操作 (没有vue的响应式功能, 只是普通的数据存储共享)
+子应用通过 `window.store` 操作 (没有vue的响应式功能, 只是普通的数据存储共享)
 
+👇 存储数据 并 提供 发布订阅 update 后自动触发
 ```ts
 import { Store } from "../type"
 /**
@@ -1000,6 +1017,7 @@ export const createStore:()=>Store = () => {
     if(newVal !== store) {
       const oldVal = store // 暂存后 赋新值
       store = newVal
+      // 自动触发发布订阅
       observers.forEach(fn => fn(newVal, oldVal))
     }
   }
@@ -1018,6 +1036,7 @@ export const createStore:()=>Store = () => {
 👇 主应用 
 ```ts
 window.store = createStore()
+// 添加订阅者 每次修改 store 都会触发这个回调
 window.store.addSubscribe((newVal:{}, oldVal:{}) => {
   console.log('Subscribe', newVal,oldVal)
 })
@@ -1032,15 +1051,14 @@ registerMicroApps()
 start()
 ```
 
-子应用就可以通过 window.store 操作
+子应用就可以通过 `window.store` 操作
 
-
-## 性能优化 53 54
+## 性能优化
 
 ### 缓存子应用静态资源
 
-首次 fetch 子应用 html/JS 时缓存
-后续切换时不发出 fetch 请求
+首次 `fetch` 子应用 `html/JS` 时缓存
+后续切换时不发出 `fetch` 请求
 
 ```ts
 const cache = {} // 以子应用name 来缓存html/JS 内容
